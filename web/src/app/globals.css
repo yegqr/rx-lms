@@ -1,0 +1,144 @@
+@import "tailwindcss";
+
+/* ---------- KSE brand fonts (Graphik) ---------- */
+@font-face {
+  font-family: "Graphik";
+  src: url("/fonts/Graphik-Regular-Web.woff2") format("woff2"),
+       url("/fonts/Graphik-Regular-Web.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Graphik";
+  src: url("/fonts/Graphik-Medium-Web.woff2") format("woff2"),
+       url("/fonts/Graphik-Medium-Web.woff") format("woff");
+  font-weight: 500 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ---------- KSE design tokens ---------- */
+:root {
+  --kse-navy: #003863;        /* primary */
+  --kse-navy-700: #002a4a;
+  --kse-navy-50: #e9f0f6;
+  --kse-yellow: #f1e935;      /* signature accent */
+  --kse-yellow-soft: #fdf59a;
+  --kse-green: #a7c539;
+  --kse-blue: #5cc4ef;
+  --kse-ink: #14202b;
+  --kse-muted: #5b6b78;
+  --kse-line: #dbe2e8;
+  --kse-bg: #f7f9fb;
+  --kse-card: #ffffff;
+  --background: var(--kse-bg);
+  --foreground: var(--kse-ink);
+}
+
+/* Expose tokens to Tailwind v4 utilities (bg-kse-navy, text-kse-yellow, ...) */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-kse-navy: var(--kse-navy);
+  --color-kse-navy-700: var(--kse-navy-700);
+  --color-kse-navy-50: var(--kse-navy-50);
+  --color-kse-yellow: var(--kse-yellow);
+  --color-kse-yellow-soft: var(--kse-yellow-soft);
+  --color-kse-green: var(--kse-green);
+  --color-kse-blue: var(--kse-blue);
+  --color-kse-ink: var(--kse-ink);
+  --color-kse-muted: var(--kse-muted);
+  --color-kse-line: var(--kse-line);
+  --color-kse-card: var(--kse-card);
+  --font-sans: "Graphik", "Inter", system-ui, -apple-system, sans-serif;
+  --radius: 12px;
+}
+
+* {
+  border-color: var(--kse-line);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer base {
+  h1, h2, h3, h4 {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--kse-navy);
+  }
+}
+
+/* Long-form lesson/reading prose */
+.prose-kse { color: var(--kse-ink); line-height: 1.7; }
+.prose-kse p { margin: 0 0 1rem; }
+.prose-kse h2, .prose-kse h3 { margin: 1.6rem 0 0.6rem; }
+.prose-kse ul, .prose-kse ol { margin: 0 0 1rem 1.2rem; }
+.prose-kse li { margin: 0.25rem 0; }
+.prose-kse blockquote {
+  border-left: 3px solid var(--kse-yellow);
+  background: #fffdf0;
+  padding: 0.75rem 1rem; margin: 1rem 0; border-radius: 0 8px 8px 0;
+}
+.prose-kse strong { color: var(--kse-navy); }
+
+/* ---------- Rich lesson content (ported from the original demo, KSE-recolored) ---------- */
+.prose-kse .lede { font-size: 1.0625rem; color: var(--kse-muted); margin: 0 0 1.25rem; max-width: 70ch; }
+.prose-kse .sub-title { font-size: 1rem; font-weight: 600; color: var(--kse-navy); margin: 1.5rem 0 .5rem; }
+.prose-kse .section-title { font-size: 1.25rem; font-weight: 600; color: var(--kse-navy); margin: 1.5rem 0 .6rem; }
+.prose-kse .muted { color: var(--kse-muted); }
+
+.prose-kse .callout {
+  background: var(--kse-yellow-soft); border: 1px solid #efe49a;
+  border-radius: 12px; padding: .9rem 1rem; margin: 1rem 0; display: flex; gap: .75rem; font-size: .95rem;
+}
+.prose-kse .callout .icon { color: #b59a00; flex: 0 0 auto; margin-top: 2px; }
+
+.prose-kse .anecdote {
+  background: #fff; border: 1px solid var(--kse-line); border-left: 3px solid #c5832b;
+  border-radius: 12px; padding: .9rem 1rem; margin: 1rem 0; font-size: .95rem;
+}
+.prose-kse .anecdote .label { font-size: .66rem; letter-spacing: .14em; text-transform: uppercase; color: #c5832b; font-weight: 700; margin-bottom: 4px; }
+.prose-kse .anecdote p { margin: 0; }
+
+.prose-kse .analogy {
+  background: linear-gradient(135deg, #eef4f9 0%, #e6eff7 100%);
+  border: 1px solid #cfe0ee; border-radius: 14px; padding: 1.1rem 1.25rem; margin: 1.25rem 0;
+}
+.prose-kse .analogy .label { font-size: .7rem; letter-spacing: .14em; text-transform: uppercase; color: var(--kse-navy); font-weight: 700; }
+.prose-kse .analogy h4 { font-size: 1.1rem; font-weight: 600; margin: .25rem 0 .5rem; color: var(--kse-navy); }
+.prose-kse .analogy p { margin: 0; font-size: .95rem; }
+.prose-kse .analogy svg { display: block; margin: .9rem auto .25rem; max-width: 100%; }
+
+.prose-kse .mastery { background: #fff; border: 1px solid var(--kse-line); border-radius: 14px; padding: 1.25rem; margin: 1.25rem 0; }
+.prose-kse .mastery-head { display: flex; align-items: baseline; gap: .75rem; flex-wrap: wrap; margin-bottom: .35rem; }
+.prose-kse .mastery-head h3 { font-weight: 600; font-size: 1.1rem; margin: 0; color: var(--kse-navy); }
+.prose-kse .mastery-head .gate, .prose-kse .mastery-sub { font-size: .8rem; color: var(--kse-muted); }
+.prose-kse .mastery-sub { margin: 0 0 .9rem; }
+.prose-kse .mastery-grid { display: flex; flex-direction: column; gap: .5rem; }
+.prose-kse .mastery-row { display: grid; grid-template-columns: 1.6fr 1fr 80px; align-items: center; border: 1px solid var(--kse-line); border-radius: 10px; padding: .6rem .9rem; font-size: .9rem; gap: .9rem; }
+.prose-kse .mastery-row .concept { font-weight: 600; color: var(--kse-navy); }
+.prose-kse .mastery-row .level { font-size: .75rem; color: var(--kse-muted); margin-top: 2px; }
+.prose-kse .mastery-row .score-bar { position: relative; height: 8px; background: var(--kse-line); border-radius: 999px; overflow: hidden; }
+.prose-kse .mastery-row .score-bar > span { display: block; height: 100%; background: linear-gradient(90deg, var(--kse-green), #4cb98a); border-radius: 999px; }
+
+.prose-kse .tag { display: inline-flex; align-items: center; gap: .3rem; font-size: .72rem; font-weight: 600; padding: .15rem .5rem; border-radius: 999px; background: var(--kse-navy-50); color: var(--kse-navy); }
+.prose-kse .tag.accent { background: var(--kse-yellow-soft); color: #8a7c00; }
+.prose-kse .tag.good { background: #e3f5ec; color: var(--kse-green); }
+.prose-kse .stat-card, .prose-kse .card { background: #fff; border: 1px solid var(--kse-line); border-radius: 14px; padding: 1.1rem; margin: 1rem 0; }
+.prose-kse .num { font-weight: 700; color: var(--kse-navy); }
+
+/* Mentor transcript blocks rendered into lesson bodies */
+.prose-kse .mentor { background: var(--kse-navy-50); border: 1px solid var(--kse-line); border-radius: 14px; padding: 1rem 1.1rem; margin: 1rem 0; }
+.prose-kse .mentor-head { display: flex; align-items: center; gap: .6rem; margin-bottom: .5rem; }
+.prose-kse .mentor-avatar { width: 32px; height: 32px; border-radius: 999px; background: var(--kse-navy); color: var(--kse-yellow); display: grid; place-items: center; font-weight: 700; font-size: .75rem; }
+.prose-kse .mentor-name { font-weight: 600; color: var(--kse-navy); }
+.prose-kse .mentor-role { font-size: .75rem; color: var(--kse-muted); }
+
+.fade-in { animation: fadein .3s ease both; }
+@keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }

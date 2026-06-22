@@ -1,0 +1,243 @@
+// RX-LMS schema — Disruption LMS (KSE × RethinkX)
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  student
+  instructor
+  admin
+}
+
+enum ItemType {
+  overview
+  lesson
+  reading
+  quiz
+  discussion
+  assignment
+}
+
+enum SubmissionStatus {
+  submitted
+  graded
+  returned
+}
+
+// ---------- Auth.js models ----------
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  passwordHash  String? // for email/password registration
+  role          Role      @default(student)
+  createdAt     DateTime  @default(now())
+
+  accounts        Account[]
+  sessions        Session[]
+  enrollments     Enrollment[]
+  progress        Progress[]
+  quizAttempts    QuizAttempt[]
+  submissions     Submission[]
+  grades          Grade[]          @relation("grader")
+  discussionPosts DiscussionPost[]
+  mentorSessions  MentorSession[]
+  logs            ActivityLog[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ---------- Course domain ----------
+model Course {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  subtitle    String?
+  provider    String // "rethinkx" | "brik"
+  status      String   @default("live") // live | draft
+  gating      Boolean  @default(true) // sequential mastery gating
+  createdAt   DateTime @default(now())
+
+  modules     Module[]
+  enrollments Enrollment[]
+  cohorts     Cohort[]
+}
+
+model Module {
+  id        String   @id @default(cuid())
+  courseId  String
+  number    Int
+  title     String
+  summary   String?
+  myth      String? // "north star belief challenged"
+  order     Int
+  isPreview Boolean  @default(false)
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  items     Item[]
+
+  @@unique([courseId, number])
+}
+
+model Item {
+  id           String   @id @default(cuid())
+  moduleId     String
+  type         ItemType
+  title        String
+  order        Int
+  duration     String?
+  passThreshold Int?    // for quizzes, e.g. 6 (out of 10)
+  content      Json // type-specific payload (body, questions, rubric, mentor turns...)
+  module       Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  progress     Progress[]
+  quizAttempts QuizAttempt[]
+  submissions  Submission[]
+  posts        DiscussionPost[]
+  mentorSessions MentorSession[]
+}
+
+model Cohort {
+  id        String   @id @default(cuid())
+  courseId  String
+  name      String
+  startsAt  DateTime?
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  enrollments Enrollment[]
+}
+
+model Enrollment {
+  id         String   @id @default(cuid())
+  userId     String
+  courseId   String
+  cohortId   String?
+  status     String   @default("active")
+  enrolledAt DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  cohort     Cohort?  @relation(fields: [cohortId], references: [id])
+
+  @@unique([userId, courseId])
+}
+
+model Progress {
+  id          String   @id @default(cuid())
+  userId      String
+  itemId      String
+  completed   Boolean  @default(false)
+  completedAt DateTime?
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item        Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, itemId])
+}
+
+model QuizAttempt {
+  id        String   @id @default(cuid())
+  userId    String
+  itemId    String
+  score     Int
+  total     Int
+  answers   Json
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+}
+
+model Submission {
+  id          String           @id @default(cuid())
+  userId      String
+  itemId      String
+  text        String?          @db.Text
+  fileUrl     String?
+  status      SubmissionStatus @default(submitted)
+  submittedAt DateTime         @default(now())
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item        Item             @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  grade       Grade?
+
+  @@unique([userId, itemId])
+}
+
+model Grade {
+  id           String   @id @default(cuid())
+  submissionId String   @unique
+  graderId     String?
+  scores       Json
+  feedback     String?  @db.Text
+  total        Float
+  createdAt    DateTime @default(now())
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  grader       User?      @relation("grader", fields: [graderId], references: [id])
+}
+
+model DiscussionPost {
+  id        String   @id @default(cuid())
+  userId    String
+  itemId    String
+  body      String   @db.Text
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+}
+
+model MentorSession {
+  id        String   @id @default(cuid())
+  userId    String
+  itemId    String?
+  messages  Json // [{role, content, ts}]
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item      Item?    @relation(fields: [itemId], references: [id])
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  meta      Json?
+  ip        String?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id])
+
+  @@index([createdAt])
+  @@index([action])
+}

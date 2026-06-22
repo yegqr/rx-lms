@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DISRUPTION · upload</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center;
+         font: 15px/1.5 system-ui, sans-serif; background: #0b0d12; color: #e7e9ee; }
+  .card { width: min(560px, 92vw); background: #141821; border: 1px solid #232a37;
+          border-radius: 16px; padding: 28px; box-shadow: 0 20px 60px rgba(0,0,0,.4); }
+  h1 { margin: 0 0 4px; font-size: 20px; letter-spacing: .5px; }
+  p.sub { margin: 0 0 20px; color: #8a93a6; font-size: 13px; }
+  label { display: block; font-size: 12px; color: #8a93a6; margin: 14px 0 6px; }
+  input[type=password] { width: 100%; padding: 10px 12px; border-radius: 10px;
+          border: 1px solid #2b3344; background: #0f131b; color: #e7e9ee; }
+  .drop { margin-top: 8px; border: 2px dashed #2b3344; border-radius: 14px; padding: 30px;
+          text-align: center; color: #8a93a6; cursor: pointer; transition: .15s; }
+  .drop.over { border-color: #5b8cff; background: #101726; color: #cdd6ea; }
+  .drop strong { color: #5b8cff; }
+  ul { list-style: none; padding: 0; margin: 18px 0 0; }
+  li { display: flex; justify-content: space-between; gap: 10px; padding: 8px 10px;
+       border-radius: 8px; background: #0f131b; margin-bottom: 6px; font-size: 13px; }
+  .bar { height: 4px; background: #232a37; border-radius: 4px; overflow: hidden; margin-top: 4px; }
+  .bar > i { display: block; height: 100%; width: 0; background: #5b8cff; transition: width .1s; }
+  .ok { color: #4ade80; } .err { color: #f87171; }
+  .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>⬆ DISRUPTION · upload</h1>
+    <p class="sub">Файли потрапляють напряму в проєкт RX-LMS.</p>
+    <label for="tok">Токен доступу (необов'язково)</label>
+    <input id="tok" type="password" placeholder="можна лишити порожнім" autocomplete="off">
+    <div class="drop" id="drop">
+      Перетягни файли сюди або <strong>клікни</strong>, щоб вибрати.
+    </div>
+    <input id="file" type="file" multiple hidden>
+    <ul id="list"></ul>
+  </div>
+<script>
+  const tok = document.getElementById('tok');
+  const drop = document.getElementById('drop');
+  const file = document.getElementById('file');
+  const list = document.getElementById('list');
+
+  try { tok.value = localStorage.getItem('upTok') || ''; } catch (e) {}
+  tok.addEventListener('change', () => { try { localStorage.setItem('upTok', tok.value); } catch (e) {} });
+
+  drop.onclick = () => file.click();
+  ['dragover','dragenter'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+  ['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+  drop.addEventListener('drop', e => send(e.dataTransfer.files));
+  file.addEventListener('change', () => send(file.files));
+
+  function send(files) {
+    [...files].forEach(uploadOne);
+  }
+
+  function uploadOne(f) {
+    const li = document.createElement('li');
+    li.innerHTML = `<span class="name">${f.name}</span><span class="pct">0%</span>`;
+    const bar = document.createElement('div'); bar.className = 'bar';
+    const fill = document.createElement('i'); bar.appendChild(fill);
+    li.appendChild(bar); list.prepend(li);
+    const pct = li.querySelector('.pct');
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('PUT', '/upload?name=' + encodeURIComponent(f.name));
+    if (tok.value) xhr.setRequestHeader('Authorization', 'Bearer ' + tok.value);
+    xhr.upload.onprogress = e => {
+      if (!e.lengthComputable) return;
+      const p = Math.round(e.loaded / e.total * 100);
+      pct.textContent = p + '%'; fill.style.width = p + '%';
+    };
+    xhr.onload = () => {
+      if (xhr.status === 200) { pct.textContent = '✓'; pct.className = 'pct ok'; }
+      else { pct.textContent = 'помилка ' + xhr.status; pct.className = 'pct err'; }
+    };
+    xhr.onerror = () => { pct.textContent = 'збій'; pct.className = 'pct err'; };
+    xhr.send(f);
+  }
+</script>
+</body>
+</html>

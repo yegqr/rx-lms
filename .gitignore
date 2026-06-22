@@ -1,0 +1,25 @@
+# dependencies
+node_modules/
+
+# next.js
+web/.next/
+web/out/
+web/build/
+web/next-env.d.ts
+
+# secrets / env (NEVER commit)
+**/.env
+**/.env.local
+.db-url
+
+# uploaded files + extracted source (may contain personal data)
+uploads/
+
+# logs / temp
+*.log
+*.tsbuildinfo
+.DS_Store
+
+# commercial font binaries (Graphik) — see web/public/fonts/README.md
+web/public/fonts/*.woff
+web/public/fonts/*.woff2
